@@ -32,6 +32,16 @@ func (r *Reader) Xref(obj int) (int64, int) {
 	return xref.offset, int(xref.ptr.gen)
 }
 
+// Append a value to an array.
+func (v Value) Append(value Value) Value {
+	x, ok := v.data.(array)
+	if !ok {
+		return Value{}
+	}
+	v.data = append(x, value.data)
+	return v
+}
+
 // Obj returns obj number.
 func (v Value) Obj() int {
 	return int(v.ptr.id)
@@ -67,6 +77,11 @@ func (v Value) Ustring() string {
 	return uobjfmt(v.data)
 }
 
+// ValueArray returns (an empty) array as a Value
+func ValueArray() Value {
+	return Value{data: make(array, 0)}
+}
+
 // ValueDict returns (an empty) dict as a Value
 func ValueDict() Value {
 	return Value{data: make(dict)}
@@ -91,6 +106,7 @@ func ValueObj(obj, generation int) Value {
 func ValueString(a string) Value {
 	return Value{data: a}
 }
+
 
 // Internal functions
 

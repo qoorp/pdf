@@ -11,20 +11,19 @@ import (
 	rscpdf "github.com/qoorp/pdf"
 )
 
-// The keys we use in the PDF trailer.
-// The files are not visible as normal attachments.
 const (
-	QoorpAddedFiles   = "QoorpAddedFiles1"
-	QoorpAddedStreams = "QoorpAddedStreams1"
-	// Not used yet.
-	QoorpReplacedStreams = "QoorpReplacedStreams1"
+	qoorpAddedFiles      = "QoorpAddedFiles1"
+	qoorpAddedStreams    = "QoorpAddedStreams1"
+	qoorpReplacedStreams = "QoorpReplacedStreams1"
 )
 
-// PDF is existing PDF (in original) that we want to add PDF objects too.
+// PDF is existing PDF (in original) that we add PDF objects too.
 type PDF struct {
 	addobjs     []*Obj
 	original    []byte
 	nobj        int64
+	qaf         string
+	qas         string
 	replaceobjs []*Obj
 	rscreader   *rscpdf.Reader
 }
@@ -41,7 +40,8 @@ func NewPDF(original []byte) (*PDF, error) {
 	if size < 1 {
 		return &PDF{}, errors.New("too small Size")
 	}
-	return &PDF{original: original, rscreader: r, nobj: size}, nil
+	p := PDF{original: original, rscreader: r, nobj: size, qaf: qoorpAddedFiles, qas: qoorpAddedStreams}
+	return &p, nil
 }
 
 // AddFile adds a file attachment with name filename and contents from contents.
@@ -74,6 +74,18 @@ func (p *PDF) AddStream(content []byte, dict rscpdf.Value) error {
 	return nil
 }
 
+// QoorpAddedFiles is the name of the Dict in the trailer
+// that has the added file objects.
+func (p *PDF) QoorpAddedFiles() string {
+	return p.qaf
+}
+
+// QoorpAddedStreams is the name of the Dict in the trailer
+// that has the added stream objects.
+func (p *PDF) QoorpAddedStreams() string {
+	return p.qas
+}
+
 // replaceStream replaces an existing Obj with contents.
 // Not usable yet..
 // Need better rscreader.Obj() before allowing them into trailer.
@@ -93,6 +105,18 @@ func (p *PDF) replaceStream(obj int, content []byte, dict rscpdf.Value) error {
 	}
 	p.replaceobjs = append(p.replaceobjs, o)
 	return nil
+}
+
+// SetQoorpAddedFiles will be the name of the Dict in the trailer
+// that has the added file objects.
+func (p *PDF) SetQoorpAddedFiles(qaf string) {
+	p.qaf = qaf
+}
+
+// SetQoorpAddedStreams will be the name of the Dict in the trailer
+// that has the added stream objects.
+func (p *PDF) SetQoorpAddedStreams(qas string) {
+	p.qas = qas
 }
 
 // Write PDF to writer.
@@ -225,7 +249,7 @@ func (p *PDF) writeTrailer(w io.Writer) (int, error) {
 	prev := rscpdf.ValueInt64(int64(p.rscreader.Startxref()))
 	t.SetMapIndex("Prev", prev)
 	if len(p.addobjs) > 0 {
-		writeTrailerAdd(p.addobjs, t)
+		writeTrailerAdd(p.addobjs, t, p.qaf, p.qas)
 	}
 	if len(p.replaceobjs) > 0 {
 		writeTrailerReplace(p.replaceobjs, t)
@@ -233,14 +257,14 @@ func (p *PDF) writeTrailer(w io.Writer) (int, error) {
 	return fmt.Fprintf(w, "trailer\n%v\n", t.Ustring())
 }
 
-func writeTrailerAdd(objs []*Obj, t rscpdf.Value) {
+func writeTrailerAdd(objs []*Obj, t rscpdf.Value, qaf, qas string) {
 	fs := rscpdf.ValueArray()
 	ss := rscpdf.ValueArray()
 	for _, obj := range objs {
 		fs, ss = writeTrailerAppend(fs, ss, obj)
 	}
-	t.SetMapIndex(QoorpAddedFiles, fs)
-	t.SetMapIndex(QoorpAddedStreams, ss)
+	t.SetMapIndex(qaf, fs)
+	t.SetMapIndex(qas, ss)
 }
 
 func writeTrailerAppend(fs, ss rscpdf.Value, obj *Obj) (rscpdf.Value, rscpdf.Value) {
@@ -269,7 +293,7 @@ func writeTrailerReplace(objs []*Obj, t rscpdf.Value) {
 			log.Println("writeTrailerReplace failed for", obj)
 		}
 	}
-	t.SetMapIndex(QoorpReplacedStreams, rs)
+	t.SetMapIndex(qoorpReplacedStreams, rs)
 }
 
 func (p *PDF) writeXref(w io.Writer) (int, error) {

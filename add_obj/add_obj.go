@@ -16,6 +16,8 @@ import (
 const (
 	QoorpAddedFiles   = "QoorpAddedFiles1"
 	QoorpAddedStreams = "QoorpAddedStreams1"
+	// Not used yet.
+	QoorpReplacedStreams = "QoorpReplacedStreams1"
 )
 
 // PDF is existing PDF (in original) that we want to add PDF objects too.
@@ -267,7 +269,7 @@ func writeTrailerReplace(objs []*Obj, t rscpdf.Value) {
 			log.Println("writeTrailerReplace failed for", obj)
 		}
 	}
-	t.SetMapIndex("QoorpReplacedStreams1", rs)
+	t.SetMapIndex(QoorpReplacedStreams, rs)
 }
 
 func (p *PDF) writeXref(w io.Writer) (int, error) {

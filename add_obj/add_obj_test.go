@@ -103,9 +103,9 @@ func Test_pdfaddstream(t *testing.T) {
 	pdf1.AddStream([]byte(addedc), rscpdf.ValueDict())
 	pdf2 := checkModification(t, pdf1, 788, 7)
 	tr := pdf2.rscreader.Trailer()
-	streams := tr.Key("QoorpAddedStreams1")
+	streams := tr.Key(QoorpAddedStreams)
 	if streams.Kind() != rscpdf.Array {
-		t.Error("QoorpAddedStreams1 expected", rscpdf.Array, "got", streams.Kind())
+		t.Error(QoorpAddedStreams, "expected", rscpdf.Array, "got", streams.Kind())
 	}
 	checkStream(t, streams.Index(0), addedc)
 }
@@ -118,9 +118,9 @@ func Test_pdfaddstream2(t *testing.T) {
 	pdf1.AddStream([]byte(added2), rscpdf.ValueDict())
 	pdf2 := checkModification(t, pdf1, 882, 8)
 	tr := pdf2.rscreader.Trailer()
-	streams := tr.Key("QoorpAddedStreams1")
+	streams := tr.Key(QoorpAddedStreams)
 	if streams.Kind() != rscpdf.Array {
-		t.Error("QoorpAddedStreams1 expected", rscpdf.Array, "got", streams.Kind())
+		t.Error(QoorpAddedStreams, "expected", rscpdf.Array, "got", streams.Kind())
 	}
 	checkStream(t, streams.Index(0), added1)
 	checkStream(t, streams.Index(1), added2)
@@ -152,9 +152,9 @@ func Test_pdfaddfile(t *testing.T) {
 	pdf1.AddFile(filename, []byte(addedc), rscpdf.ValueDict())
 	pdf2 := checkModification(t, pdf1, 871, 8)
 	tr := pdf2.rscreader.Trailer()
-	filespecs := tr.Key("QoorpAddedFiles1")
+	filespecs := tr.Key(QoorpAddedFiles)
 	if filespecs.Kind() != rscpdf.Array {
-		t.Error("QoorpAddedFiles1 expected", rscpdf.Array, "got", filespecs.Kind())
+		t.Error(QoorpAddedFiles, "expected", rscpdf.Array, "got", filespecs.Kind())
 	}
 	checkFilespec(t, filespecs.Index(0), filename, addedc)
 }
@@ -176,9 +176,9 @@ func Test_pdfaddfile2(t *testing.T) {
 	us := b.String()
 	ioutil.WriteFile("add.pdf", []byte(us), 0644)
 	tr := pdf2.rscreader.Trailer()
-	filespecs := tr.Key("QoorpAddedFiles1")
+	filespecs := tr.Key(QoorpAddedFiles)
 	if filespecs.Kind() != rscpdf.Array {
-		t.Error("QoorpAddedFiles1 expected", rscpdf.Array, "got", filespecs.Kind())
+		t.Error(QoorpAddedFiles, "expected", rscpdf.Array, "got", filespecs.Kind())
 	}
 	checkFilespec(t, filespecs.Index(0), filename1, addedc1)
 	checkFilespec(t, filespecs.Index(1), filename2, addedc2)
@@ -198,11 +198,11 @@ func pdfFromSample(t *testing.T) *PDF {
 
 func checkFilespec(t *testing.T, filespec rscpdf.Value, filename, content string) {
 	if filespec.Kind() != rscpdf.Dict {
-		t.Error("QoorpAddedFiles1 expected", rscpdf.Dict, "got", filespec.Kind())
+		t.Error(QoorpAddedFiles, "expected", rscpdf.Dict, "got", filespec.Kind())
 	}
 	f := filespec.Key("F")
 	if f.RawString() != filename {
-		t.Error("QoorpAddedFiles1 expected", filename, "got", f.String())
+		t.Error(QoorpAddedFiles, "expected", filename, "got", f.String())
 	}
 	ef := filespec.Key("EF")
 	if ef.Kind() != rscpdf.Dict {
@@ -252,14 +252,14 @@ func checkModification(t *testing.T, original *PDF, xref, size int64) *PDF {
 
 func checkStream(t *testing.T, stream rscpdf.Value, content string) {
 	if stream.Kind() != rscpdf.Stream {
-		t.Error("QoorpAddedStreams1 expected", rscpdf.Stream, "got", stream.Kind())
+		t.Error(QoorpAddedStreams, "expected", rscpdf.Stream, "got", stream.Kind())
 	}
 	qasr := stream.Reader()
 	qasc, err := ioutil.ReadAll(qasr)
 	if err != nil {
-		t.Error("QoorpAddedStream1 got", err)
+		t.Error(QoorpAddedStreams, "got", err)
 	}
 	if string(qasc) != content {
-		t.Error("QoorpAddedStream1 expected", content, "got", string(qasc))
+		t.Error(QoorpAddedStreams, "expected", content, "got", string(qasc))
 	}
 }
